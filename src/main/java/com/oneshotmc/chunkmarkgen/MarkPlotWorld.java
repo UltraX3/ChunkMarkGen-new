@@ -11,21 +11,30 @@ public class MarkPlotWorld extends GridPlotWorld{
     public static int PLOT_HEIGHT;
 	public MarkPlotWorld(String worldname, String id, Generator generator, PlotId min, PlotId max) {
 		super(worldname, worldname, generator, max, max);
-		PLOT_WIDTH=16*32;
-		ROAD_WIDTH=16*16;
-		ALLOW_SIGNS=false;
-		PLOT_HEIGHT=16;
 		// TODO Auto-generated constructor stub
 	}
-	
+
+	@Override
+	public void loadDefaultConfiguration(ConfigurationSection config) {
+		super.loadDefaultConfiguration(config);
+		ALLOW_SIGNS = false;
+		PLOT_WIDTH=16*32;
+		ROAD_WIDTH=16*16;
+		PLOT_HEIGHT=16;
+	}
+
 	@Override
     public ConfigurationNode[] getSettingNodes() {
         return new ConfigurationNode[0];
     }
 	
 	@Override
-    public void loadConfiguration(final ConfigurationSection arg0) {
-        // Nothing is configurable :P
+    public void loadConfiguration(final ConfigurationSection config) {
+		//super.loadDefaultConfiguration(config);
+		ALLOW_SIGNS = false;
+		PLOT_WIDTH=16*32;
+		ROAD_WIDTH=16*16;
+		PLOT_HEIGHT=16;
     }
 
 }

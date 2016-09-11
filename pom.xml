@@ -27,8 +27,8 @@
 
     <repositories>
         <repository>
-            <id>OneShotMC</id>
-            <url>http://maven.oneshotmc.com/nexus/content/repositories/OneShotMC</url>
+            <id>everything</id>
+            <url>http://maven.oneshotmc.com/content/repositories/everything</url>
         </repository>
         <repository>
             <id>spigot-repo</id>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.intellectualcrafters</groupId>
             <artifactId>PlotSquared</artifactId>
-            <version>3.3.1</version>
+            <version>3.4.5</version>
         </dependency>
 
         <!--Lombok (Also need plugin) -->
