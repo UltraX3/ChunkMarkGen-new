@@ -35,6 +35,7 @@ public class MarkPlotWorld extends GridPlotWorld{
 		PLOT_WIDTH=16*32;
 		ROAD_WIDTH=16*16;
 		PLOT_HEIGHT=16;
+		SCHEMATIC_ON_CLAIM = false;
     }
 
 }

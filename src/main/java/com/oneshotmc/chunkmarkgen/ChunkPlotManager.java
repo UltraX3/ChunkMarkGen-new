@@ -1,9 +1,6 @@
 package com.oneshotmc.chunkmarkgen;
 
-import com.intellectualcrafters.plot.generator.ClassicPlotWorld;
 import com.intellectualcrafters.plot.generator.GridPlotManager;
-import com.intellectualcrafters.plot.generator.GridPlotWorld;
-import com.intellectualcrafters.plot.generator.SquarePlotWorld;
 import com.intellectualcrafters.plot.object.*;
 import com.intellectualcrafters.plot.util.ChunkManager;
 import com.intellectualcrafters.plot.util.block.LocalBlockQueue;
@@ -204,7 +201,7 @@ public class ChunkPlotManager extends GridPlotManager {
 			for (RegionWrapper region : plot.getRegions()) {
 				Location pos1 = getPlotBottomLocAbs(plotArea,plotId);
 				Location pos2 = getPlotTopLocAbs(plotArea, plotId).clone();
-				pos2.setY(MarkPlotWorld.PLOT_HEIGHT);
+				pos2.setY(MarkPlotWorld.PLOT_HEIGHT-2);
 				queue.setCuboid(pos1, pos2, blocks);
 			}
 		}
@@ -218,9 +215,9 @@ public class ChunkPlotManager extends GridPlotManager {
 		if (plot.isBasePlot()) {
 			for (RegionWrapper region : plot.getRegions()) {
 				final Location pos1 = getPlotBottomLocAbs(plotArea, plotId).clone();
-				pos1.setY(MarkPlotWorld.PLOT_HEIGHT+1);
+				pos1.setY(MarkPlotWorld.PLOT_HEIGHT-1);
 				final Location pos2 = getPlotTopLocAbs(plotArea, plotId).clone();
-				pos2.setY(MarkPlotWorld.PLOT_HEIGHT+1);
+				pos2.setY(MarkPlotWorld.PLOT_HEIGHT-1);
 				queue.setCuboid(pos1, pos2, blocks);
 			}
 		}
