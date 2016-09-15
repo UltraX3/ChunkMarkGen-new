@@ -5,9 +5,10 @@ import com.intellectualcrafters.plot.object.*;
 import com.intellectualcrafters.plot.util.ChunkManager;
 import com.intellectualcrafters.plot.util.MainUtil;
 import com.intellectualcrafters.plot.util.TaskManager;
-import org.apache.commons.lang.mutable.MutableInt;
+import com.plotsquared.bukkit.generator.BukkitPlotGenerator;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import sun.java2d.xr.MutableInteger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,12 +41,12 @@ public class ChunkPlotManager extends GridPlotManager {
 				chunks.add(new ChunkLoc(x, z));
 			}
 		}
-		final MutableInt id = new MutableInt(0);
+		final MutableInteger id = new MutableInteger(0);
 		id.setValue(TaskManager.runTaskRepeat(new Runnable() {
 			@Override
 			public void run() {
 				if (chunks.size() == 0) {
-					Bukkit.getScheduler().cancelTask(id.intValue());
+					Bukkit.getScheduler().cancelTask(id.getValue());
 					whenDone.run();
 					return;
 				}
@@ -53,8 +54,7 @@ public class ChunkPlotManager extends GridPlotManager {
 				while (((System.currentTimeMillis() - start) < 25) && (chunks.size() > 0)) {
 					final ChunkLoc loc = chunks.remove(0);
 					if (world.loadChunk(loc.x, loc.z, false)) {
-						ChunkManager.manager.regenerateChunk(plotArea.worldname,loc);
-						//Dev
+						world.regenerateChunk(loc.x,loc.z);
 						MainUtil.update(plotArea.worldname,loc);
 					}
 				}
@@ -193,34 +193,34 @@ public class ChunkPlotManager extends GridPlotManager {
 		switch (comp) {
 
 		case "floor":
-			setFloor(plotArea, plotid, blocks[0]);
+			setFloor(plotArea, plotid, blocks);
 			return true;
 			
 		case "filling":
-			setFilling(plotArea, plotid, blocks[0]);
+			setFilling(plotArea, plotid, blocks);
 
 		}
 		return false;
 
 	}
 	
-	private boolean setFilling(PlotArea plotArea, PlotId plotid, PlotBlock plotBlock) {
+	private boolean setFilling(PlotArea plotArea, PlotId plotid, PlotBlock[] plotBlock) {
 		MarkPlotWorld pw = (MarkPlotWorld) plotArea;
 		final Location pos1 = getPlotBottomLocAbs(plotArea, plotid);
         final Location pos2 = getPlotTopLocAbs(plotArea, plotid);
         pos1.setY(1);
         pos2.setY(MarkPlotWorld.PLOT_HEIGHT -2);
-        MainUtil.setSimpleCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
+		MainUtil.setCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
         return true;
 	}
 
-	private boolean setFloor(PlotArea plotArea, PlotId plotid, PlotBlock plotBlock) {
+	private boolean setFloor(PlotArea plotArea, PlotId plotid, PlotBlock[] plotBlock) {
 		MarkPlotWorld pw = (MarkPlotWorld) plotArea;
 		final Location pos1 = getPlotBottomLocAbs(plotArea, plotid);
         final Location pos2 = getPlotTopLocAbs(plotArea, plotid);
         pos1.setY(MarkPlotWorld.PLOT_HEIGHT-1);
         pos2.setY(MarkPlotWorld.PLOT_HEIGHT -1);
-        MainUtil.setSimpleCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
+		MainUtil.setCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
         return true;
 	}
 
