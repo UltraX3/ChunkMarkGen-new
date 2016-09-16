@@ -211,7 +211,23 @@ public class ChunkPlotManager extends GridPlotManager {
         pos1.setY(1);
         pos2.setY(MarkPlotWorld.PLOT_HEIGHT -2);
 		MainUtil.setCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
+		World world = Bukkit.getWorld(plotArea.worldname);
+		for(int cx = pos1.getX() >> 4; cx < pos2.getX() >> 4; cx++){
+			for(int cz = pos1.getZ() >> 4; cz < pos2.getZ() >> 4; cz++){
+				world.unloadChunk(cx,cz);
+			}
+		}
+		unloadChunks(plotArea,pos1,pos2);
         return true;
+	}
+
+	private void unloadChunks(PlotArea plotArea, Location pos1, Location pos2){
+		World world = Bukkit.getWorld(plotArea.worldname);
+		for(int cx = pos1.getX() >> 4; cx < pos2.getX() >> 4; cx++){
+			for(int cz = pos1.getZ() >> 4; cz < pos2.getZ() >> 4; cz++){
+				world.unloadChunk(cx,cz);
+			}
+		}
 	}
 
 	private boolean setFloor(PlotArea plotArea, PlotId plotid, PlotBlock[] plotBlock) {
@@ -221,6 +237,8 @@ public class ChunkPlotManager extends GridPlotManager {
         pos1.setY(MarkPlotWorld.PLOT_HEIGHT-1);
         pos2.setY(MarkPlotWorld.PLOT_HEIGHT -1);
 		MainUtil.setCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
+		World world = Bukkit.getWorld(plotArea.worldname);
+		unloadChunks(plotArea,pos1,pos2);
         return true;
 	}
 
