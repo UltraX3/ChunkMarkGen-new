@@ -54,7 +54,8 @@
         <dependency>
             <groupId>com.intellectualcrafters</groupId>
             <artifactId>PlotSquared</artifactId>
-            <version>3.4.5</version>
+            <version>3.4.6</version>
+            <classifier>c533f0b</classifier>
         </dependency>
 
         <!--Lombok (Also need plugin) -->

@@ -6,6 +6,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Main extends JavaPlugin {
     @Override
     public ChunkGenerator getDefaultWorldGenerator(final String worldName, final String id) {
-        return (ChunkGenerator) new Generator(worldName).<ChunkGenerator>specify();
+        return (ChunkGenerator) new Generator(worldName).<ChunkGenerator>specify(worldName);
     }
 }
