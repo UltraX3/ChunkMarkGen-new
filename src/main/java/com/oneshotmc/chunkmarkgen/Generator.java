@@ -5,6 +5,8 @@ import com.intellectualcrafters.plot.object.*;
 import com.intellectualcrafters.plot.util.MainUtil;
 import com.intellectualcrafters.plot.util.block.ScopedLocalBlockQueue;
 
+import java.util.Random;
+
 public class Generator extends IndependentPlotGenerator {
 
 	public Generator(String world) {
@@ -12,7 +14,7 @@ public class Generator extends IndependentPlotGenerator {
 		MainUtil.initCache();
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	public final static int WALL_HEIGHT = 256;
 	public final static short HEIGHT = 16;
 	public final static short MAIN_BLOCK = 155; // Plot main filling (stone)
@@ -21,45 +23,6 @@ public class Generator extends IndependentPlotGenerator {
 	public final static short BOTTOM_BLOCK = 7; // Bottom bedrock
 	private static PlotManager manager = new ChunkPlotManager();
 
-	/*
-	@Override
-	public short[][] generateExtBlockSections(final World world, final Random r, final int X, final int Z,
-			final BiomeGrid biomes) {
-		final boolean other = (X+Z)%2==0;
-		int realx = X * 16;
-		int realz = Z * 16;
-		final int blockID;
-		final MarkPlotArea pw = (MarkPlotArea) PS.get().getPlotArea(world.getName());
-		final short[][] result = new short[16][];
-		for (int x = 0; x < 16; x++) {
-			for (int z = 0; z < 16; z++) {
-				if(isWall(realx+x,realz+z, pw.ROAD_WIDTH,pw.PLOT_WIDTH)){
-					for(int y=0; y < WALL_HEIGHT; y++){
-						setBlock(result, x, y, z, (short)7);
-					}
-					continue;
-				}
-				if(isOutPlot(realx+x,realz+z, pw.ROAD_WIDTH,pw.PLOT_WIDTH)){
-					continue;
-				}
-				setBlock(result, x, 0, z, (short)7);
-				for (int y = 1; y < HEIGHT; y++) {
-					if(other)
-						setBlock(result, x, y, z, OTHER_BLOCK);
-					else
-						setBlock(result,x,y,z, MAIN_BLOCK);
-					/*
-					else{
-						setBlock(result, x, y, z, (short) 0);
-					}
-					
-				}
-			}
-		}
-		return result;
-
-	}
-	*/
 	private boolean isWall(final int x, final int z, int road_width, int plot_width){
 		int size = road_width+plot_width;
 		int px = x % size;
@@ -205,7 +168,7 @@ public class Generator extends IndependentPlotGenerator {
 	}
 
 	@Override
-	public void generateChunk(ScopedLocalBlockQueue result, PlotArea plotArea, PseudoRandom pseudoRandom) {
+	public void generateChunk(ScopedLocalBlockQueue result, PlotArea plotArea, PseudoRandom rand) {
 		Location location = result.getMin();
 		int realx = location.getX();
 		int realz = location.getZ();
@@ -228,21 +191,39 @@ public class Generator extends IndependentPlotGenerator {
 					continue;
 				}
 				result.setBlock(x, 0, z, (short)7,(byte)0);
-				for (int y = 1; y < HEIGHT; y++) {
+				for (int y = 1; y < HEIGHT - 1; y++) {
 					if(other)
-						result.setBlock(x, y, z, OTHER_BLOCK,(byte)0);
+						result.setBlock(x,y,z,(short) 159, (byte) 13);
 					else
-						result.setBlock(x,y,z, MAIN_BLOCK,(byte)0);
-					/*
-					else{
-						setBlock(result, x, y, z, (short) 0);
+						result.setBlock(x,y,z,(short) 159, (byte) 5);
+				}
+
+				if(x == 0 || x==15 || z== 0 || z==15)
+					result.setBlock(x, HEIGHT - 1, z, (short)159,(byte)15);
+				else {
+					int toSet = rand.random(3);
+					byte data;
+					switch (toSet) {
+						case 0:
+							data = 5;
+							break;
+						case 1:
+							data = 7;
+							break;
+						case 2:
+							data = 13;
+							break;
+						default:
+							data = 1;
+							break;
 					}
-					*/
+					result.setBlock(x, HEIGHT - 1, z, (short) 159, data);
 				}
 			}
 		}
 		return;
 	}
+
 
 	@Override
 	public PlotArea getNewPlotArea(String world, String id, PlotId min, PlotId max)  {
