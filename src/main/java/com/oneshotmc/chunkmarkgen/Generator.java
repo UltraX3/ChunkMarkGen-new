@@ -1,12 +1,9 @@
 package com.oneshotmc.chunkmarkgen;
 
 import com.intellectualcrafters.plot.generator.IndependentPlotGenerator;
-import com.intellectualcrafters.plot.object.PlotArea;
-import com.intellectualcrafters.plot.object.PlotId;
-import com.intellectualcrafters.plot.object.PlotManager;
-import com.intellectualcrafters.plot.object.PseudoRandom;
+import com.intellectualcrafters.plot.object.*;
 import com.intellectualcrafters.plot.util.MainUtil;
-import com.intellectualcrafters.plot.util.PlotChunk;
+import com.intellectualcrafters.plot.util.block.ScopedLocalBlockQueue;
 
 public class Generator extends IndependentPlotGenerator {
 
@@ -201,20 +198,26 @@ public class Generator extends IndependentPlotGenerator {
 
 	//TODO: confused...
 
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return "ChunkMarkGen";
+	}
 
 	@Override
-	public void generateChunk(PlotChunk<?> result, PlotArea area, PseudoRandom rand) {
-		int X = result.getX();
-		int Z = result.getZ();
+	public void generateChunk(ScopedLocalBlockQueue result, PlotArea plotArea, PseudoRandom pseudoRandom) {
+		Location location = result.getMin();
+		int realx = location.getX();
+		int realz = location.getZ();
+		int X = realx >> 4;
+		int Z = realz >> 4;
 		final boolean other = (X+Z)%2==0;
-		int realx = X * 16;
-		int realz = Z * 16;
 		final int blockID;
-		final MarkPlotWorld pw = (MarkPlotWorld) area;
-		
+		final MarkPlotWorld pw = (MarkPlotWorld) plotArea;
+
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {
-				result.setBiome(x, z, area.PLOT_BIOME);
+				result.setBiome(x, z, plotArea.PLOT_BIOME);
 				if(isWall(realx+x,realz+z, pw.ROAD_WIDTH,pw.PLOT_WIDTH)){
 					for(int y=0; y < WALL_HEIGHT; y++){
 						result.setBlock(x, y, z, (short)7,(byte)0);
@@ -239,13 +242,6 @@ public class Generator extends IndependentPlotGenerator {
 			}
 		}
 		return;
-
-	}
-
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return "ChunkMarkGen";
 	}
 
 	@Override
@@ -264,5 +260,6 @@ public class Generator extends IndependentPlotGenerator {
 		// TODO Auto-generated method stub
 		
 	}
+
 
 }

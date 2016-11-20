@@ -1,17 +1,16 @@
+
 package com.oneshotmc.chunkmarkgen;
 
 import com.intellectualcrafters.plot.generator.GridPlotManager;
 import com.intellectualcrafters.plot.object.*;
 import com.intellectualcrafters.plot.util.ChunkManager;
-import com.intellectualcrafters.plot.util.MainUtil;
-import com.intellectualcrafters.plot.util.TaskManager;
-import com.plotsquared.bukkit.generator.BukkitPlotGenerator;
+import com.intellectualcrafters.plot.util.block.LocalBlockQueue;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import sun.java2d.xr.MutableInteger;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Iterator;
 
 public class ChunkPlotManager extends GridPlotManager {
 
@@ -32,34 +31,24 @@ public class ChunkPlotManager extends GridPlotManager {
 		 * @Override public void run() { world.regenerateChunk(value[0],
 		 * value[1]); } }, whenDone, 5); return true;
 		 */
-		final Location bot = getPlotBottomLocAbs(plot.getArea(), plot.getId());
-		final Location top = getPlotTopLocAbs(plot.getArea(), plot.getId());
-		final World world = Bukkit.getWorld(plotArea.worldname);
-		final List<ChunkLoc> chunks = new ArrayList<>();
-		for (int x = bot.getX() >> 4; x <= (top.getX() >> 4); x++) {
-			for (int z = bot.getZ() >> 4; z <= (top.getZ() >> 4); z++) {
-				chunks.add(new ChunkLoc(x, z));
-			}
-		}
-		final MutableInteger id = new MutableInteger(0);
-		id.setValue(TaskManager.runTaskRepeat(new Runnable() {
+
+		final HashSet<RegionWrapper> regions = plot.getRegions();
+		Runnable run = new Runnable() {
 			@Override
 			public void run() {
-				if (chunks.size() == 0) {
-					Bukkit.getScheduler().cancelTask(id.getValue());
+				if (regions.isEmpty()) {
 					whenDone.run();
 					return;
 				}
-				final long start = System.currentTimeMillis();
-				while (((System.currentTimeMillis() - start) < 25) && (chunks.size() > 0)) {
-					final ChunkLoc loc = chunks.remove(0);
-					if (world.loadChunk(loc.x, loc.z, false)) {
-						world.regenerateChunk(loc.x,loc.z);
-						MainUtil.update(plotArea.worldname,loc);
-					}
-				}
+				Iterator<RegionWrapper> iterator = regions.iterator();
+				RegionWrapper region = iterator.next();
+				iterator.remove();
+				Location pos1 = new Location(plot.getArea().worldname, region.minX, region.minY, region.minZ);
+				Location pos2 = new Location(plot.getArea().worldname, region.maxX, region.maxY, region.maxZ);
+				ChunkManager.manager.regenerateRegion(pos1, pos2, false, this);
 			}
-		}, 1));
+		};
+		run.run();
 		return true;
 	}
 
@@ -164,10 +153,13 @@ public class ChunkPlotManager extends GridPlotManager {
 
 	@Override
 	public Location getSignLoc(PlotArea pw, Plot plot) {
+
 		MarkPlotWorld mpw = (MarkPlotWorld) pw;
 		final Location bot = getPlotBottomLocAbs(pw, plot.getId());
-		return new com.intellectualcrafters.plot.object.Location(pw.worldname, bot.getX() - 1, mpw.PLOT_HEIGHT + 1,
+		return new com.intellectualcrafters.plot.object.Location(pw.worldname, bot.getX() - 1, MarkPlotWorld.PLOT_HEIGHT + 1,
 				bot.getZ() - 2);
+
+		//return null;
 	}
 
 	@Override
@@ -192,33 +184,16 @@ public class ChunkPlotManager extends GridPlotManager {
 	public boolean setComponent(PlotArea plotArea, PlotId plotid, String comp, PlotBlock[] blocks) {
 		switch (comp) {
 
-		case "floor":
-			setFloor(plotArea, plotid, blocks);
-			return true;
-			
-		case "filling":
-			setFilling(plotArea, plotid, blocks);
+			case "floor":
+				setFloor(plotArea, plotid, blocks);
+				return true;
+
+			case "filling":
+				setFilling(plotArea, plotid, blocks);
 
 		}
 		return false;
 
-	}
-	
-	private boolean setFilling(PlotArea plotArea, PlotId plotid, PlotBlock[] plotBlock) {
-		MarkPlotWorld pw = (MarkPlotWorld) plotArea;
-		final Location pos1 = getPlotBottomLocAbs(plotArea, plotid);
-        final Location pos2 = getPlotTopLocAbs(plotArea, plotid);
-        pos1.setY(1);
-        pos2.setY(MarkPlotWorld.PLOT_HEIGHT -2);
-		MainUtil.setCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
-		World world = Bukkit.getWorld(plotArea.worldname);
-		for(int cx = pos1.getX() >> 4; cx < pos2.getX() >> 4; cx++){
-			for(int cz = pos1.getZ() >> 4; cz < pos2.getZ() >> 4; cz++){
-				world.unloadChunk(cx,cz);
-			}
-		}
-		unloadChunks(plotArea,pos1,pos2);
-        return true;
 	}
 
 	private void unloadChunks(PlotArea plotArea, Location pos1, Location pos2){
@@ -230,16 +205,36 @@ public class ChunkPlotManager extends GridPlotManager {
 		}
 	}
 
-	private boolean setFloor(PlotArea plotArea, PlotId plotid, PlotBlock[] plotBlock) {
-		MarkPlotWorld pw = (MarkPlotWorld) plotArea;
-		final Location pos1 = getPlotBottomLocAbs(plotArea, plotid);
-        final Location pos2 = getPlotTopLocAbs(plotArea, plotid);
-        pos1.setY(MarkPlotWorld.PLOT_HEIGHT-1);
-        pos2.setY(MarkPlotWorld.PLOT_HEIGHT -1);
-		MainUtil.setCuboidAsync(plotArea.worldname, pos1, pos2, plotBlock);
-		World world = Bukkit.getWorld(plotArea.worldname);
-		unloadChunks(plotArea,pos1,pos2);
-        return true;
+	private boolean setFilling(PlotArea plotArea, PlotId plotId, PlotBlock[] blocks) {
+		Plot plot = plotArea.getPlotAbs(plotId);
+		LocalBlockQueue queue = plotArea.getQueue(false);
+		if (plot.isBasePlot()) {
+			MarkPlotWorld mpw = ((MarkPlotWorld) plotArea);
+			for (RegionWrapper region : plot.getRegions()) {
+				Location pos1 = getPlotBottomLocAbs(plotArea,plotId);
+				Location pos2 = getPlotTopLocAbs(plotArea, plotId).clone();
+				pos2.setY(MarkPlotWorld.PLOT_HEIGHT-2);
+				queue.setCuboid(pos1, pos2, blocks);
+			}
+		}
+		queue.enqueue();
+		return true;
+	}
+
+	private boolean setFloor(PlotArea plotArea, PlotId plotId, PlotBlock[] blocks) {
+		Plot plot = plotArea.getPlotAbs(plotId);
+		LocalBlockQueue queue = plotArea.getQueue(false);
+		if (plot.isBasePlot()) {
+			for (RegionWrapper region : plot.getRegions()) {
+				final Location pos1 = getPlotBottomLocAbs(plotArea, plotId).clone();
+				pos1.setY(MarkPlotWorld.PLOT_HEIGHT-1);
+				final Location pos2 = getPlotTopLocAbs(plotArea, plotId).clone();
+				pos2.setY(MarkPlotWorld.PLOT_HEIGHT-1);
+				queue.setCuboid(pos1, pos2, blocks);
+			}
+		}
+		queue.enqueue();
+		return true;
 	}
 
 	@Override
